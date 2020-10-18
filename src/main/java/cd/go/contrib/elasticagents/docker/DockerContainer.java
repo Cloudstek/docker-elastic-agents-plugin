@@ -121,6 +121,7 @@ public class DockerContainer {
             containerConfigBuilder.cmd(splitIntoLinesAndTrimSpaces(request.properties().get("Command")).toArray(new String[]{}));
         }
 
+        final String networkName = request.properties().get("Network");
         final String hostConfig = request.properties().get("Hosts");
         final String reservedMemory = request.properties().get("ReservedMemory");
         final String maxMemory = request.properties().get("MaxMemory");
@@ -153,6 +154,12 @@ public class DockerContainer {
         consoleLogAppender.accept(String.format("Creating container: %s", containerName));
         ContainerCreation container = docker.createContainer(containerConfig, containerName);
         String id = container.id();
+
+        // Connect to existing network
+        if (networkName != null) {
+            docker.connectToNetwork(id, networkName);
+            LOG.debug(String.format("Attached container %s to network %s", containerName, networkName));
+        }
 
         ContainerInfo containerInfo = docker.inspectContainer(id);
 
@@ -273,7 +280,7 @@ public class DockerContainer {
     private static List<String> extraHosts(ContainerInfo containerInfo) {
         HostConfig hostConfig = containerInfo.hostConfig();
         if (hostConfig != null) {
-           return hostConfig.extraHosts();
+            return hostConfig.extraHosts();
         }
         return new ArrayList<>();
     }
