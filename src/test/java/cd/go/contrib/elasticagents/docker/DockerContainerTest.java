@@ -24,6 +24,9 @@ import com.google.common.collect.ImmutableList;
 import com.spotify.docker.client.DockerClient;
 import com.spotify.docker.client.exceptions.ImageNotFoundException;
 import com.spotify.docker.client.messages.ContainerInfo;
+import com.spotify.docker.client.messages.Network;
+import com.spotify.docker.client.messages.NetworkConfig;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +47,7 @@ public class DockerContainerTest extends BaseTest {
 
     @Rule
     public ExpectedException thrown = ExpectedException.none();
+    public String networkName = "gocd-elastic-test";
     private JobIdentifier jobIdentifier;
     private ConsoleLogAppender consoleLogAppender;
 
@@ -55,6 +59,14 @@ public class DockerContainerTest extends BaseTest {
         jobIdentifier = new JobIdentifier("up42", 2L, "foo", "stage", "1", "job", 1L);
         request = new CreateAgentRequest("key", properties, "production", jobIdentifier, Collections.EMPTY_MAP);
         consoleLogAppender = mock(ConsoleLogAppender.class);
+    }
+
+    @After
+    public void tearDown() {
+        try {
+            docker.removeNetwork(networkName);
+        } catch (Exception ex) {
+        }
     }
 
     @Test
@@ -335,6 +347,33 @@ public class DockerContainerTest extends BaseTest {
 
         assertThat(containerInfo.hostConfig().binds(), containsInAnyOrder(
                 "/:/A", "/:/B:ro"));
+
+        DockerContainer dockerContainer = DockerContainer.fromContainerInfo(containerInfo);
+
+        assertThat(dockerContainer.properties(), is(properties));
+    }
+
+    @Test
+    public void shouldStartContainerWithNetwork() throws Exception {
+        Map<String, String> properties = new HashMap<>();
+        properties.put("Image", "busybox:latest");
+        properties.put("Network", networkName);
+
+        NetworkConfig networkConfig = NetworkConfig.builder()
+                .name(networkName)
+                .attachable(true)
+                .build();
+
+        docker.createNetwork(networkConfig);
+
+        PluginSettings clusterProfiles = createClusterProfiles();
+        DockerContainer container = DockerContainer.create(new CreateAgentRequest("key", properties, "prod", jobIdentifier, Collections.EMPTY_MAP), clusterProfiles, docker, consoleLogAppender);
+        containers.add(container.name());
+
+        ContainerInfo containerInfo = docker.inspectContainer(container.name());
+        Network networkInfo = docker.inspectNetwork(networkName);
+
+        assertTrue(containerInfo.networkSettings().networks().containsKey(networkName));
 
         DockerContainer dockerContainer = DockerContainer.fromContainerInfo(containerInfo);
 

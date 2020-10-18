@@ -62,6 +62,13 @@ public class GetProfileMetadataExecutorTest {
                 "    }\n" +
                 "  },\n" +
                 "  {\n" +
+                "    \"key\": \"Network\",\n" +
+                "    \"metadata\": {\n" +
+                "      \"required\": false,\n" +
+                "      \"secure\": false\n" +
+                "    }\n" +
+                "  },\n" +
+                "  {\n" +
                 "    \"key\": \"Environment\",\n" +
                 "    \"metadata\": {\n" +
                 "      \"required\": false,\n" +
