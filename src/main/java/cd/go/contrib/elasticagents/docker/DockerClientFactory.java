@@ -19,8 +19,12 @@ package cd.go.contrib.elasticagents.docker;
 import com.spotify.docker.client.DefaultDockerClient;
 import com.spotify.docker.client.DockerCertificates;
 import com.spotify.docker.client.DockerClient;
+import com.spotify.docker.client.auth.FixedRegistryAuthSupplier;
+import com.spotify.docker.client.auth.RegistryAuthSupplier;
 import com.spotify.docker.client.exceptions.DockerCertificateException;
+import com.spotify.docker.client.messages.Info;
 import com.spotify.docker.client.messages.RegistryAuth;
+import com.spotify.docker.client.messages.RegistryConfigs;
 import org.apache.commons.io.FileUtils;
 import java.io.File;
 import java.io.IOException;
@@ -66,7 +70,13 @@ public class DockerClientFactory {
             } else {
                 auth = RegistryAuth.fromDockerConfig(pluginSettings.getPrivateRegistryServer()).build();
             }
-            builder.registryAuth(auth);
+
+            RegistryConfigs registryConfig = RegistryConfigs.builder()
+                    .addConfig(auth.serverAddress(), auth)
+                    .build();
+
+            RegistryAuthSupplier registryAuthSupplier = new FixedRegistryAuthSupplier(auth, registryConfig);
+            builder.registryAuthSupplier(registryAuthSupplier);
         }
 
         DefaultDockerClient docker = builder.build();
