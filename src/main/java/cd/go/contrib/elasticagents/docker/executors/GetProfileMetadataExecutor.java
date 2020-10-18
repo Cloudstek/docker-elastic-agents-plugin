@@ -31,6 +31,7 @@ public class GetProfileMetadataExecutor implements RequestExecutor {
 
     public static final Metadata IMAGE = new Metadata("Image", true, false);
     public static final Metadata COMMAND = new Metadata("Command", false, false);
+    public static final Metadata NETWORK = new Metadata("Network", false, false);
     public static final Metadata ENVIRONMENT = new Metadata("Environment", false, false);
     public static final Metadata RESERVED_MEMORY = new MemoryMetadata("ReservedMemory");
     public static final Metadata MAX_MEMORY = new MemoryMetadata("MaxMemory");
@@ -44,6 +45,7 @@ public class GetProfileMetadataExecutor implements RequestExecutor {
     static {
         FIELDS.add(IMAGE);
         FIELDS.add(COMMAND);
+        FIELDS.add(NETWORK);
         FIELDS.add(ENVIRONMENT);
         FIELDS.add(RESERVED_MEMORY);
         FIELDS.add(MAX_MEMORY);
